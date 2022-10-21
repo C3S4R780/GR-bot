@@ -83,7 +83,11 @@ class Reactions(commands.Cog):
     @nextcord.slash_command(name="listar_reacao", description="Crio uma lista com todas as reações.")
     async def listar_reacao(self, interaction: Interaction):
 
-        reactions = json.load(open("reactions.json", encoding='utf-8'))
+        headers = {
+            'Content-Type': 'application/json',
+            'X-Master-Key': JSONTOKEN
+        }
+        reactions = requests.get("https://api.jsonbin.io/v3/b/6353165c65b57a31e69e4b36?meta=false", headers=headers).json()
         embed = nextcord.Embed(title="Lista de reações")
 
         for key, reaction in reactions.items():
