@@ -3,7 +3,7 @@ import nextcord
 from nextcord.ext import commands
 import wavelink
 import os
-from apiKeys import *
+from apiKeys import BOTTOKEN
 
 # Global variables
 intents = nextcord.Intents.all() # Setup bot intents
