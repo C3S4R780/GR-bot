@@ -44,6 +44,10 @@ class Reactions(commands.Cog):
 
         if not msg.author.bot:
 
+            if "<@995790616745234482>" in msg.content:
+                channel = self.bot.get_channel(msg.channel.id)
+                await channel.send("Falou comigo?")
+
             headers = {
                 'X-Master-Key': JSONTOKEN
             }
