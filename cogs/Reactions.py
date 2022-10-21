@@ -4,6 +4,36 @@ from nextcord.ext import commands
 import json
 import random
 import requests
+from apiKeys import JSONTOKEN
+
+async def edit_reactions(interaction: Interaction, type:str, palavra:str, conteudo: str = ""):
+    """
+        JSON API: https://jsonbin.io/app/
+    """
+    headers = {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JSONTOKEN
+    }
+    reactions = requests.get("https://api.jsonbin.io/v3/b/6353165c65b57a31e69e4b36?meta=false", headers=headers).json()
+
+    if type == "add":
+        response = "Reação criada com sucesso!"
+        if palavra in reactions:
+            response = "Reação atualizada com sucesso!"
+        reactions[palavra] = conteudo
+
+    if type == "del":
+        if (reactions.get(palavra) == None):
+            return await interaction.response.send_message(content="Reação não encontrada", ephemeral=True)
+        del reactions[palavra]
+        response = "Reação removida com sucesso!"
+
+    req = requests.put("https://api.jsonbin.io/v3/b/6353165c65b57a31e69e4b36", json=reactions, headers=headers)
+
+    if req.status_code == 200:
+        await interaction.response.send_message(content=response, ephemeral=True)
+    else:
+        await interaction.response.send_message(content=f"Deu ruim, chama o <@614093922339127316>\n`Reactions.py: Error {req.status_code}`")
 
 class Reactions(commands.Cog):
     def __init__(self, client):
@@ -11,9 +41,13 @@ class Reactions(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, msg):
+
         if not msg.author.bot:
 
-            reactions = json.load(open("reactions.json", encoding='utf-8'))
+            headers = {
+                'X-Master-Key': JSONTOKEN
+            }
+            reactions = requests.get("https://api.jsonbin.io/v3/b/6353165c65b57a31e69e4b36?meta=false", headers=headers).json()
             for reaction in reactions:
                 if reaction.lower() in msg.content.lower():
                     channel = self.bot.get_channel(msg.channel.id)
@@ -35,42 +69,12 @@ class Reactions(commands.Cog):
     @nextcord.slash_command(name="adicionar_reacao", description="Sempre que eu ver a palavra chave, irei reagir com o conteudo informado.")
     async def adicionar_reacao(self, interaction: Interaction, palavra: str = SlashOption(description="Qual palavra devo procurar ?"), conteudo: str = SlashOption(description="O que devo dizer ao reagir ?")):
 
-        # if " " in palavra:
-        #     return await interaction.response.send_message(content="A palavra chave não pode ter espaços", ephemeral=True)
-
-        reactions = open("reactions.json", "r", encoding='utf-8')
-        reaction_list = json.load(reactions)
-        reactions.close()
-
-        response = "Reação criada com sucesso!"
-        if palavra in reaction_list:
-            response = "Reação atualizada com sucesso!"
-
-        reaction_list[palavra] = conteudo
-
-        reactions = open("reactions.json", "w", encoding='utf-8')
-        json.dump(reaction_list, reactions)
-        reactions.close()
-
-        await interaction.response.send_message(content=response, ephemeral=True)
+        await edit_reactions(interaction,"add",palavra,conteudo)
 
     @nextcord.slash_command(name="remover_reacao", description="Escolha qual reação devo remover.")
     async def remover_reacao(self, interaction: Interaction, palavra: str = SlashOption(description="Qual palavra devo remover ?")):
 
-        reactions = open("reactions.json", "r", encoding='utf-8')
-        reaction_list = json.load(reactions)
-        reactions.close()
-
-        if (reaction_list.get(palavra) == None):
-            return await interaction.response.send_message(content="Reação não encontrada", ephemeral=True)
-
-        del reaction_list[palavra]
-
-        reactions = open("reactions.json", "w", encoding='utf-8')
-        json.dump(reaction_list, reactions)
-        reactions.close()
-
-        await interaction.response.send_message(content="Reação removida com sucesso!", ephemeral=True)
+        await edit_reactions(interaction,"del",palavra)
 
     @nextcord.slash_command(name="listar_reacao", description="Crio uma lista com todas as reações.")
     async def listar_reacao(self, interaction: Interaction):
