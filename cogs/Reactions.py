@@ -1,12 +1,11 @@
 import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
-import json
 import random
 import requests
 from apiKeys import JSONTOKEN
 
-async def edit_reactions(interaction: Interaction, type:str, palavra:str, conteudo: str = ""):
+async def edit_reactions(interaction: Interaction, type: str, palavra: str, conteudo: str = ""):
     """
         JSON API: https://jsonbin.io/app/
     """
