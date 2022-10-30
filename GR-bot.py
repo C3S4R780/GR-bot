@@ -9,15 +9,10 @@ from apiKeys import BOTTOKEN
 intents = nextcord.Intents.all() # Setup bot intents
 client = commands.Bot(command_prefix="/", intents=intents) # Create bot client
 
-# --- Aux ---
-async def node_connect():
-    await client.wait_until_ready()
-    await wavelink.NodePool.create_node(bot=client, host="lavalink.oops.wtf", port=443, password="www.freelavalink.ga", https=True)
-
 # --- Events ---
-@client.event
-async def on_ready():
-    client.loop.create_task(node_connect())
+# @client.event
+# async def on_ready():
+#     print("--- Ready ---")
 
 initial_extensions = []
 
