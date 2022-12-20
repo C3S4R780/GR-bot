@@ -1,3 +1,4 @@
+# Imports
 import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
@@ -5,28 +6,44 @@ import random
 import requests
 from apiKeys import JSONTOKEN
 
+# Get all reactions
+headers = {
+    'Content-Type': 'application/json',
+    'X-Master-Key': JSONTOKEN
+}
+reactions = requests.get("https://api.jsonbin.io/v3/b/6353165c65b57a31e69e4b36?meta=false", headers=headers)
+if (reactions.status_code == 200):
+    reactions = reactions.json()
+
+# Add, edit or delete the especified reaction
 async def edit_reactions(interaction: Interaction, type: str, palavra: str, conteudo: str = ""):
     """
         JSON API: https://jsonbin.io/app/
     """
-    headers = {
-        'Content-Type': 'application/json',
-        'X-Master-Key': JSONTOKEN
-    }
-    reactions = requests.get("https://api.jsonbin.io/v3/b/6353165c65b57a31e69e4b36?meta=false", headers=headers).json()
 
+    # Adding a reaction to the list
     if type == "add":
         response = "Reação criada com sucesso!"
+
+        # If the reaction already exists...
         if palavra in reactions:
             response = "Reação atualizada com sucesso!"
+
+        # Add/edit the reaction
         reactions[palavra] = conteudo
 
+    # Deleting a reaction from the list
     if type == "del":
+
+        # If the reaction doesnt exists...
         if (reactions.get(palavra) == None):
             return await interaction.response.send_message(content="Reação não encontrada", ephemeral=True)
+
+        # Remove the reaction from the list
         del reactions[palavra]
         response = "Reação removida com sucesso!"
 
+    # Update the reaction list
     req = requests.put("https://api.jsonbin.io/v3/b/6353165c65b57a31e69e4b36", json=reactions, headers=headers)
 
     if req.status_code == 200:
@@ -47,10 +64,6 @@ class Reactions(commands.Cog):
                 channel = self.bot.get_channel(msg.channel.id)
                 await channel.send("Falou comigo?")
 
-            headers = {
-                'X-Master-Key': JSONTOKEN
-            }
-            reactions = requests.get("https://api.jsonbin.io/v3/b/6353165c65b57a31e69e4b36?meta=false", headers=headers).json()
             for reaction in reactions:
                 if reaction.lower() in msg.content.lower():
                     channel = self.bot.get_channel(msg.channel.id)
@@ -61,9 +74,11 @@ class Reactions(commands.Cog):
                 await msg.add_reaction(emojiList[random.randint(0, 6)])
 
             if (random.randint(1,40) == 1):
-                joke = requests.get("https://api-charadas.herokuapp.com/puzzle?lang=ptbr").json()
-                channel = self.bot.get_channel(msg.channel.id)
-                await channel.send(f"{msg.author.mention}, {joke.get('question')}\n **{joke.get('answer')}**")
+                joke = requests.get("https://api-charadas.herokuapp.com/puzzle?lang=ptbr")
+                if (joke.status_code == 200):
+                    joke = joke.json()
+                    channel = self.bot.get_channel(msg.channel.id)
+                    await channel.send(f"{msg.author.mention}, {joke.get('question')}\n **{joke.get('answer')}**")
 
             if (random.randint(1,1000) == 1):
                 dm = await msg.author.create_dm()
@@ -82,11 +97,6 @@ class Reactions(commands.Cog):
     @nextcord.slash_command(name="listar_reacao", description="Crio uma lista com todas as reações.")
     async def listar_reacao(self, interaction: Interaction):
 
-        headers = {
-            'Content-Type': 'application/json',
-            'X-Master-Key': JSONTOKEN
-        }
-        reactions = requests.get("https://api.jsonbin.io/v3/b/6353165c65b57a31e69e4b36?meta=false", headers=headers).json()
         embed = nextcord.Embed(title="Lista de reações")
 
         for key, reaction in reactions.items():
