@@ -36,37 +36,55 @@ class Radio(commands.Cog):
         if (interaction.client.voice_clients):
             for client in interaction.client.voice_clients:
 
-                # If its the same channel as the user...
-                if client.channel == userVoiceChannel:
+                # If the user is not in the same voice channel as the bot...
+                if client.channel != userVoiceChannel:
+                    return await interaction.response.send_message(content="⚠️ Você precisar estar no mesmo canal de voz para usar este comando.", ephemeral=True)
 
-                    if (hasattr(client, 'queue')):
-                        if not (client.queue.is_empty):
-                            view = QuitPrompt()
-                            await interaction.send(content="Ainda tem musica na fila, deseja mesmo que eu saia ?", view=view, delete_after=30)
-                            await view.wait()
+                # If the client has the queue attribute... (is playing youtube)
+                if (hasattr(client, 'queue')):
 
-                            if (view.value == None):
-                                return
-                            elif (view.value == "quit"):
-                                client.cleanup()
-                                await client.disconnect()
-                                client = await userVoiceChannel.connect()
-                                source = FFmpegPCMAudio(radio)
-                                client.play(source)
-                                await interaction.send(content=f"{interaction.user.mention} mudou para a radio `{radioName}`")
-                            else:
-                                await interaction.delete_original_message()
+                    # If the queue is not empty...
+                    if not (client.queue.is_empty):
 
-                    # If the bot is already playing a radio...
-                    if (client.is_playing()):
+                        # Gets the confirmation prompt to leave
+                        view = QuitPrompt()
+                        await interaction.send(content="Ainda tem musica na fila, deseja mesmo que eu saia ?", view=view, delete_after=30)
 
-                        # Change the radio channel
-                        source = FFmpegPCMAudio(radio)
-                        client.source = source
-                        await interaction.response.send_message(f"✅ Agora tocando: `{radioName}`")
+                        # Awating response...
+                        await view.wait()
+                        if (view.value == None): return
 
+                        # If the user confirms the prompt...
+                        elif (view.value == "quit"):
+
+                            # Removes the youtube client
+                            client.cleanup()
+                            await client.disconnect()
+
+                            # Creates the radio client and plays the selected radio
+                            client = await userVoiceChannel.connect()
+                            source = FFmpegPCMAudio(radio)
+                            client.play(source)
+                            await interaction.send(content=f"{interaction.user.mention} mudou para a radio `{radioName}`")
+
+                        # If the user cancels the prompt...
+                        else:
+
+                            # Dismiss the prompt message
+                            await interaction.delete_original_message()
+
+                # If the bot is already playing a radio...
+                if (client.is_playing()):
+
+                    # Change the radio channel
+                    source = FFmpegPCMAudio(radio)
+                    client.source = source
+                    await interaction.response.send_message(f"✅ Agora tocando: `{radioName}`")
+
+        # Bot is not in a voice channel...
         else:
-            # Connects the bot into the user's voice channel and plays the audio
+
+            # Connects the bot into the user's voice channel and plays the radio
             source = FFmpegPCMAudio(radio)
             voice = await userVoiceChannel.connect()
             voice.play(source)
