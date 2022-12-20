@@ -1,3 +1,4 @@
+# Imports
 import nextcord
 from nextcord import Interaction, Color
 import discord
@@ -19,13 +20,13 @@ class YoutubeControls(nextcord.ui.View):
                     vc: wavelink.Player = voice_client
 
             if self.paused:
-                button.style = button.style = discord.ButtonStyle.gray
+                button.style = discord.ButtonStyle.gray
                 await interaction.edit(view=self)
                 self.paused = False
                 return await vc.resume()
 
             else:
-                button.style = button.style = discord.ButtonStyle.red
+                button.style = discord.ButtonStyle.red
                 await interaction.edit(view=self)
                 self.paused = True
                 return await vc.pause()
