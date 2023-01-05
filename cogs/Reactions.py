@@ -15,7 +15,7 @@ reactions = requests.get("https://api.jsonbin.io/v3/b/6353165c65b57a31e69e4b36?m
 if (reactions.status_code == 200):
     reactions = reactions.json()
 
-# Add, edit or delete the especified reaction
+# Add, edit or delete the specified reaction
 async def edit_reactions(interaction: Interaction, type: str, palavra: str, conteudo: str = ""):
     """
         JSON API: https://jsonbin.io/app/

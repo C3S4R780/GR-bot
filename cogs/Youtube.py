@@ -55,7 +55,7 @@ class Youtube(commands.Cog):
             await vc.play(next_song)
 
     # --- Commands ---
-    # Calls the bot into voice chat and play the especified youtube video
+    # Calls the bot into voice chat and play the specified youtube video
     @nextcord.slash_command(name="yt", description="Me chama para tocar algo do youtube no canal de voz atual 😁")
     async def yt(self, interaction: Interaction, musica:str = SlashOption(description="Nome ou URL do video")):
 
