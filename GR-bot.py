@@ -1,3 +1,17 @@
+#           GGGGGGGGGGGGGGGG   RRRRRRRRRRRRRRRRRRRRRRR
+#      GGGGG:::::::::::::GGG   R::::::::::::::::::::::RR
+#    GG::::::::::::::::::GGG   R::::::::RRRRRRRR::::::::R
+#  G:::::::G       GGGGGGGGG   R::::::::R       R::::::::RR
+# G:::::::G                    R::::::::R       R::::::::RR
+# G:::::::G                    R::::::::RRRRRRRR::::::::R
+# G:::::::G    GGGGGGGGGGGGG   R:::::::::::::::::::::RRR
+# G:::::::G    G:::::::::GGG   R::::::::RRRRRRRR::::::::R
+# G:::::::G    GGGGG:::::GGG   R::::::::R       R::::::::RR
+#  G:::::::G       G:::::GGG   R::::::::R       R::::::::RR
+#    GG::::::::::::::::::GGG   R::::::::R       R::::::::RR
+#      GGGGG::::::GGG::::GGG   R::::::::R       R::::::::RR
+#           GGGGGG   GGGGGGG   RRRRRRRRRR       RRRRRRRRRRR
+
 # Imports
 import nextcord
 from nextcord.ext import commands
