@@ -1,15 +1,15 @@
 # Imports
-import nextcord
-from nextcord import Interaction, SlashOption
-from nextcord.ext import commands
+import discord
+from discord import Interaction, SlashOption
+from discord.ext import commands
+import os
 import random
 import requests
-from apiKeys import JSONTOKEN
 
 # Get all reactions
 headers = {
     'Content-Type': 'application/json',
-    'X-Master-Key': JSONTOKEN
+    'X-Master-Key': os.environ['JSONTOKEN']
 }
 reactions = requests.get("https://api.jsonbin.io/v3/b/6353165c65b57a31e69e4b36?meta=false", headers=headers)
 if (reactions.status_code == 200):
@@ -49,7 +49,7 @@ async def edit_reactions(interaction: Interaction, type: str, palavra: str, cont
     if req.status_code == 200:
         await interaction.response.send_message(content=response, ephemeral=True)
     else:
-        await interaction.response.send_message(content=f"Deu ruim, chama o <@614093922339127316>\n`Reactions.py: Error {req.status_code}`")
+        await interaction.response.send_message(content=f"Deu ruim, chama o <@{os.environ['DM_ID']}>\n`Reactions.py: Error {req.status_code}`")
 
 class Reactions(commands.Cog):
     def __init__(self, client):
@@ -73,31 +73,32 @@ class Reactions(commands.Cog):
                 emojiList = ["😭", "👀", "🏳️‍🌈", "<:oxi:844587774137073674>", "<:kkkkkk:844588632655790081>", "<:fodase:933420784158904393>", "<:hmm:844586895946416158>"]
                 await msg.add_reaction(emojiList[random.randint(0, 6)])
 
-            if (random.randint(1,40) == 1):
-                joke = requests.get("https://api-charadas.herokuapp.com/puzzle?lang=ptbr")
-                if (joke.status_code == 200):
-                    joke = joke.json()
-                    channel = self.bot.get_channel(msg.channel.id)
-                    await channel.send(f"{msg.author.mention}, {joke.get('question')}\n **{joke.get('answer')}**")
-
             if (random.randint(1,1000) == 1):
                 dm = await msg.author.create_dm()
                 await dm.send("Mano, tu é ?? 🏳️‍🌈")
 
-    @nextcord.slash_command(name="adicionar_reacao", description="Sempre que eu ver a palavra chave, irei reagir com o conteudo informado.")
+            # F API de piada
+            # if (random.randint(1,40) == 1):
+            #     joke = requests.get("https://api-charadas.herokuapp.com/puzzle?lang=ptbr")
+            #     if (joke.status_code == 200):
+            #         joke = joke.json()
+            #         channel = self.bot.get_channel(msg.channel.id)
+            #         await channel.send(f"{msg.author.mention}, {joke.get('question')}\n **{joke.get('answer')}**")
+
+    @discord.slash_command(name="adicionar_reacao", description="Sempre que eu ver a palavra chave, irei reagir com o conteudo informado.")
     async def adicionar_reacao(self, interaction: Interaction, palavra: str = SlashOption(description="Qual palavra devo procurar ?"), conteudo: str = SlashOption(description="O que devo dizer ao reagir ?")):
 
         await edit_reactions(interaction,"add",palavra,conteudo)
 
-    @nextcord.slash_command(name="remover_reacao", description="Escolha qual reação devo remover.")
+    @discord.slash_command(name="remover_reacao", description="Escolha qual reação devo remover.")
     async def remover_reacao(self, interaction: Interaction, palavra: str = SlashOption(description="Qual palavra devo remover ?")):
 
         await edit_reactions(interaction,"del",palavra)
 
-    @nextcord.slash_command(name="listar_reacao", description="Crio uma lista com todas as reações.")
+    @discord.slash_command(name="listar_reacao", description="Crio uma lista com todas as reações.")
     async def listar_reacao(self, interaction: Interaction):
 
-        embed = nextcord.Embed(title="Lista de reações")
+        embed = discord.Embed(title="Lista de reações")
 
         for key, reaction in reactions.items():
             if "http://" in reaction or "https://" in reaction:

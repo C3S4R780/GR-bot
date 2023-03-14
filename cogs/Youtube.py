@@ -1,9 +1,11 @@
 # Imports
-import nextcord
-from nextcord import Interaction, SlashOption
-from nextcord.ext import commands
+import discord
+from discord import Interaction, SlashOption
+from discord.ext import commands
 import wavelink
 from UI.playerUI import QuitPrompt, songCard
+
+
 class Youtube(commands.Cog):
 
     def __init__(self, client):
@@ -56,7 +58,7 @@ class Youtube(commands.Cog):
 
     # --- Commands ---
     # Calls the bot into voice chat and play the specified youtube video
-    @nextcord.slash_command(name="yt", description="Me chama para tocar algo do youtube no canal de voz atual 😁")
+    @discord.slash_command(name="yt", description="Me chama para tocar algo do youtube no canal de voz atual 😁")
     async def yt(self, interaction: Interaction, musica:str = SlashOption(description="Nome ou URL do video")):
 
         # If the user is not in a voice channel...
@@ -115,7 +117,7 @@ class Youtube(commands.Cog):
 
     # Command to remove the bot from the current voice channel
     # WORKS FOR THE RADIO COMMAND TOO
-    @nextcord.slash_command(name="sair", description="Me remove do canal de voz 😔")
+    @discord.slash_command(name="sair", description="Me remove do canal de voz 😔")
     async def sair(self, interaction: Interaction):
 
         # If the bot is already in a voice channel...

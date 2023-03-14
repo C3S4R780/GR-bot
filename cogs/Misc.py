@@ -1,9 +1,9 @@
-import nextcord
-from nextcord import Interaction, SlashOption
-from nextcord.ext import commands
+import discord
+from discord import Interaction, SlashOption
+from discord.ext import commands
 from asyncio import sleep
+import os
 import random
-from apiKeys import DM_ID
 
 class Misc(commands.Cog):
     def __init__(self, client):
@@ -12,23 +12,23 @@ class Misc(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, msg):
 
-        if not msg.channel.type == nextcord.ChannelType.private: return
+        if not msg.channel.type == discord.ChannelType.private: return
         if msg.author.bot: return
 
-        my_dm = await self.bot.fetch_user(DM_ID)
+        my_dm = await self.bot.fetch_user(os.environ['DM_ID'])
         await my_dm.send(
-            f"{msg.author.mention}` | {msg.author.display_name}: {msg.content}`"
+            f"`{msg.author.mention} | {msg.author.display_name}: {msg.content}`"
         )
 
     # Command to make the bot say something
-    @nextcord.slash_command(name="diga", description="Me faça dizer algo 😁")
+    @discord.slash_command(name="diga", description="Me faça dizer algo 😁")
     async def diga(self, interaction: Interaction, msg: str = SlashOption(name="texto", description="O que devo dizer ?"), user_id = SlashOption(name="enviar_para", description="Envia esta mensagem para a DM do usuario selecionado", required=False)):
 
         # Responds the interaction with an empty message and deletes it right after
         await interaction.send(content="⠀", ephemeral=True, delete_after=0.1)
 
-        if interaction.channel.type == nextcord.ChannelType.private:
-            if user_id and user_id != f"<@{DM_ID}>":
+        if interaction.channel.type == discord.ChannelType.private:
+            if user_id and user_id != f"<@{os.environ['DM_ID']}>":
                 await interaction.send(f"Você: `{msg}`")
 
         # If a user was given...
@@ -41,7 +41,7 @@ class Misc(commands.Cog):
                 return await interaction.send(content="para de trola e manda um usuario valido pora", ephemeral=True)
 
             # Get the speficied user
-            user = nextcord.Client.get_user(self.bot, user_id)
+            user = discord.Client.get_user(self.bot, user_id)
 
             # Skip command if the specified user is a bot
             if user.bot: return await interaction.send(content="Num vo manda DM pra bot caraio", ephemeral=True)

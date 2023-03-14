@@ -13,14 +13,15 @@
 #           GGGGGG   GGGGGGG   RRRRRRRRRR       RRRRRRRRRRR
 
 # Imports
-import nextcord
-from nextcord.ext import commands
+import discord
+from discord.ext import commands
+from keep_alive import keep_alive
+from asyncio import sleep
 import os
-from apiKeys import BOTTOKEN
 
 # Global variables
-intents = nextcord.Intents.all() # Setup bot intents
-activity = nextcord.Activity(type=nextcord.ActivityType.listening, name='Rap de anime') # Bot activity
+intents = discord.Intents.all() # Setup bot intents
+activity = discord.Activity(type=discord.ActivityType.listening, name='Rap de anime') # Bot activity
 client = commands.Bot(command_prefix="/", intents=intents, activity=activity) # Create bot client
 
 # --- Events ---
@@ -38,4 +39,13 @@ if __name__ == "__main__":
         client.load_extension(extension)
 
 # Start bot
-client.run(BOTTOKEN)
+keep_alive()
+
+try:
+    client.run(os.environ['BOTTOKEN'])
+except discord.errors.HTTPException as e:
+    if e.status == 429:
+        print("RATE LIMITED - RESTARTING...")
+        sleep(10)
+        os.system("python main.py")
+        os.system('kill 1')
