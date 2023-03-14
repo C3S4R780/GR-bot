@@ -1,7 +1,7 @@
 # Imports
-import discord
-from discord import Interaction, SlashOption
-from discord.ext import commands
+import nextcord
+from nextcord import Interaction, SlashOption
+from nextcord.ext import commands
 import os
 import random
 import requests
@@ -85,20 +85,20 @@ class Reactions(commands.Cog):
             #         channel = self.bot.get_channel(msg.channel.id)
             #         await channel.send(f"{msg.author.mention}, {joke.get('question')}\n **{joke.get('answer')}**")
 
-    @discord.slash_command(name="adicionar_reacao", description="Sempre que eu ver a palavra chave, irei reagir com o conteudo informado.")
+    @nextcord.slash_command(name="adicionar_reacao", description="Sempre que eu ver a palavra chave, irei reagir com o conteudo informado.")
     async def adicionar_reacao(self, interaction: Interaction, palavra: str = SlashOption(description="Qual palavra devo procurar ?"), conteudo: str = SlashOption(description="O que devo dizer ao reagir ?")):
 
         await edit_reactions(interaction,"add",palavra,conteudo)
 
-    @discord.slash_command(name="remover_reacao", description="Escolha qual reação devo remover.")
+    @nextcord.slash_command(name="remover_reacao", description="Escolha qual reação devo remover.")
     async def remover_reacao(self, interaction: Interaction, palavra: str = SlashOption(description="Qual palavra devo remover ?")):
 
         await edit_reactions(interaction,"del",palavra)
 
-    @discord.slash_command(name="listar_reacao", description="Crio uma lista com todas as reações.")
+    @nextcord.slash_command(name="listar_reacao", description="Crio uma lista com todas as reações.")
     async def listar_reacao(self, interaction: Interaction):
 
-        embed = discord.Embed(title="Lista de reações")
+        embed = nextcord.Embed(title="Lista de reações")
 
         for key, reaction in reactions.items():
             if "http://" in reaction or "https://" in reaction:

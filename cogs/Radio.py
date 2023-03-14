@@ -1,7 +1,7 @@
 # Imports
-import discord
-from discord import Interaction, FFmpegPCMAudio, SlashOption
-from discord.ext import commands
+import nextcord
+from nextcord import Interaction, FFmpegPCMAudio, SlashOption
+from nextcord.ext import commands
 from UI.playerUI import QuitPrompt
 import json
 
@@ -15,7 +15,7 @@ class Radio(commands.Cog):
 
     # --- Commands ---
     # Command to call the bot into voice chat and play the radio's audio
-    @discord.slash_command(name="radio", description="Me chama para o canal de voz atual para tocar a rádio 😁")
+    @nextcord.slash_command(name="radio", description="Me chama para o canal de voz atual para tocar a rádio 😁")
     async def radio(self, interaction: Interaction, radio:str = SlashOption(name="radio", description="Qual rádio devo tocar ?", choices=radios)):
 
         # If the user is not in a voice channel...

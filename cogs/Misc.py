@@ -1,6 +1,7 @@
 import discord
-from discord import Interaction, SlashOption
-from discord.ext import commands
+import nextcord
+from nextcord import Interaction, SlashOption
+from nextcord.ext import commands
 from asyncio import sleep
 import os
 import random
@@ -21,7 +22,7 @@ class Misc(commands.Cog):
         )
 
     # Command to make the bot say something
-    @discord.slash_command(name="diga", description="Me faça dizer algo 😁")
+    @nextcord.slash_command(name="diga", description="Me faça dizer algo 😁")
     async def diga(self, interaction: Interaction, msg: str = SlashOption(name="texto", description="O que devo dizer ?"), user_id = SlashOption(name="enviar_para", description="Envia esta mensagem para a DM do usuario selecionado", required=False)):
 
         # Responds the interaction with an empty message and deletes it right after
@@ -41,7 +42,7 @@ class Misc(commands.Cog):
                 return await interaction.send(content="para de trola e manda um usuario valido pora", ephemeral=True)
 
             # Get the speficied user
-            user = discord.Client.get_user(self.bot, user_id)
+            user = nextcord.Client.get_user(self.bot, user_id)
 
             # Skip command if the specified user is a bot
             if user.bot: return await interaction.send(content="Num vo manda DM pra bot caraio", ephemeral=True)

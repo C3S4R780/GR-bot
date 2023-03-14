@@ -13,15 +13,15 @@
 #           GGGGGG   GGGGGGG   RRRRRRRRRR       RRRRRRRRRRR
 
 # Imports
-import discord
-from discord.ext import commands
+import os
+import nextcord
+from nextcord.ext import commands
 from keep_alive import keep_alive
 from asyncio import sleep
-import os
 
 # Global variables
-intents = discord.Intents.all() # Setup bot intents
-activity = discord.Activity(type=discord.ActivityType.listening, name='Rap de anime') # Bot activity
+intents = nextcord.Intents.all() # Setup bot intents
+activity = nextcord.Activity(type=nextcord.ActivityType.listening, name='Rap de anime') # Bot activity
 client = commands.Bot(command_prefix="/", intents=intents, activity=activity) # Create bot client
 
 # --- Events ---
@@ -43,7 +43,7 @@ keep_alive()
 
 try:
     client.run(os.environ['BOTTOKEN'])
-except discord.errors.HTTPException as e:
+except nextcord.errors.HTTPException as e:
     if e.status == 429:
         print("RATE LIMITED - RESTARTING...")
         sleep(10)

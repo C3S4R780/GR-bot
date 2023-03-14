@@ -1,6 +1,7 @@
 # Imports
 import discord
-from discord import Interaction, Color
+import nextcord
+from nextcord import Interaction, Color
 import wavelink
 import datetime
 
@@ -12,14 +13,14 @@ def get_current_client(interaction):
     else: return None
 
 
-class YoutubeControls(discord.ui.View):
+class YoutubeControls(nextcord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
         self.value = None
         self.paused = False
 
-    @discord.ui.button(emoji="⏯️")
-    async def toggle_pause(self, button: discord.ui.Button, interaction: Interaction):
+    @nextcord.ui.button(emoji="⏯️")
+    async def toggle_pause(self, button: nextcord.ui.Button, interaction: Interaction):
         vc: wavelink.Player = get_current_client(interaction)
 
         if self.paused:
@@ -34,8 +35,8 @@ class YoutubeControls(discord.ui.View):
             self.paused = True
             return await vc.pause()
 
-    @discord.ui.button(emoji="⏭️")
-    async def pular(self, button: discord.ui.Button, interaction: Interaction):
+    @nextcord.ui.button(emoji="⏭️")
+    async def pular(self, button: nextcord.ui.Button, interaction: Interaction):
         vc: wavelink.Player = get_current_client(interaction)
 
         if (vc.loop):
@@ -48,8 +49,8 @@ class YoutubeControls(discord.ui.View):
         else:
             await vc.stop()
 
-    @discord.ui.button(emoji="🔁")
-    async def loop(self, button: discord.ui.Button, interaction: Interaction):
+    @nextcord.ui.button(emoji="🔁")
+    async def loop(self, button: nextcord.ui.Button, interaction: Interaction):
         vc: wavelink.Player = get_current_client(interaction)
 
         if vc.loop == False:
@@ -62,15 +63,15 @@ class YoutubeControls(discord.ui.View):
             button.style = discord.ButtonStyle.gray
             await interaction.edit(view=self)
 
-    @discord.ui.button(emoji="📃")
-    async def song_list(self, button: discord.ui.Button, interaction: Interaction):
+    @nextcord.ui.button(emoji="📃")
+    async def song_list(self, button: nextcord.ui.Button, interaction: Interaction):
         vc: wavelink.Player = get_current_client(interaction)
 
         list_duration = 0
         for song in vc.queue:
             list_duration += song.length
 
-        embed = discord.Embed(title="Fila:", description=f"Duração da fila: `{datetime.timedelta(seconds=list_duration)}`")
+        embed = nextcord.Embed(title="Fila:", description=f"Duração da fila: `{datetime.timedelta(seconds=list_duration)}`")
         if not vc.queue.is_empty:
             i = 0
             for song in vc.queue:
@@ -80,30 +81,30 @@ class YoutubeControls(discord.ui.View):
         else:
             await interaction.send("A fila esta vazia", delete_after=5, ephemeral=True)
 
-    @discord.ui.button(emoji="❤️")
-    async def favorite(self, button: discord.ui.Button, interaction: Interaction):
+    @nextcord.ui.button(emoji="❤️")
+    async def favorite(self, button: nextcord.ui.Button, interaction: Interaction):
         vc: wavelink.Player = get_current_client(interaction)
 
         dm = await interaction.user.create_dm()
         await dm.send(f"Ta na mão chefe:\n{vc.track.uri}")
 
-class QuitPrompt(discord.ui.View):
+class QuitPrompt(nextcord.ui.View):
     def __init__(self):
         super().__init__(timeout=30)
         self.value = None
 
-    @discord.ui.button(emoji="✅")
-    async def quit(self, button: discord.ui.Button, interaction: Interaction):
+    @nextcord.ui.button(emoji="✅")
+    async def quit(self, button: nextcord.ui.Button, interaction: Interaction):
         self.value = "quit"
         self.stop()
 
-    @discord.ui.button(emoji="❌")
-    async def cancel(self, button: discord.ui.Button, interaction: Interaction):
+    @nextcord.ui.button(emoji="❌")
+    async def cancel(self, button: nextcord.ui.Button, interaction: Interaction):
         self.value = False
         self.stop()
 
 async def songCard(song: wavelink.YouTubeTrack, interaction: Interaction):
     view = YoutubeControls()
-    embed = discord.Embed(title=f"💿 `{song.title}`", url=song.uri, description=f"🎶 Adicionada por: {interaction.user.mention} | 🕒 Duração: `{str(datetime.timedelta(seconds=song.length))}`", colour=Color.from_rgb(255,0,0))
+    embed = nextcord.Embed(title=f"💿 `{song.title}`", url=song.uri, description=f"🎶 Adicionada por: {interaction.user.mention} | 🕒 Duração: `{str(datetime.timedelta(seconds=song.length))}`", colour=Color.from_rgb(255,0,0))
     embed.set_image(f"https://img.youtube.com/vi/{song.info.get('identifier')}/maxresdefault.jpg")
     return await interaction.send(embed=embed, view=view)
