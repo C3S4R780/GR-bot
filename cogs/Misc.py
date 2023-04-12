@@ -1,10 +1,10 @@
-import discord
 import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 from asyncio import sleep
 import os
 import random
+
 
 class Misc(commands.Cog):
     def __init__(self, client):
@@ -13,7 +13,7 @@ class Misc(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, msg):
 
-        if not msg.channel.type == discord.ChannelType.private: return
+        if not msg.channel.type == nextcord.ChannelType.private: return
         if msg.author.bot: return
 
         my_dm = await self.bot.fetch_user(os.environ['DM_ID'])
@@ -28,7 +28,7 @@ class Misc(commands.Cog):
         # Responds the interaction with an empty message and deletes it right after
         await interaction.send(content="⠀", ephemeral=True, delete_after=0.1)
 
-        if interaction.channel.type == discord.ChannelType.private:
+        if interaction.channel.type == nextcord.ChannelType.private:
             if user_id and user_id != f"<@{os.environ['DM_ID']}>":
                 await interaction.send(f"Você: `{msg}`")
 

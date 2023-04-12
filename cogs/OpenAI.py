@@ -77,7 +77,7 @@ class OpenAi(commands.Cog):
             last_user_msg = ""
 
             async for message in reaction.message.channel.history():
-                if message.author.id == user.id:
+                if message.author.id == user.id and "GR" in message.content:
                     last_user_msg = message
                     break
 
