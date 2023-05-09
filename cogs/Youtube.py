@@ -2,7 +2,7 @@
 import nextcord
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
-import wavelink
+import nextwave
 from UI.playerUI import QuitPrompt, songCard
 
 
@@ -15,12 +15,12 @@ class Youtube(commands.Cog):
     # Creates a lavalink node
     async def node_connect(self):
         await self.bot.wait_until_ready()
-        await wavelink.NodePool.create_node(bot=self.bot, host="node1.kartadharta.xyz", port=443, password="kdlavalink", https=True)
-
+        await nextwave.NodePool.create_node(bot=self.bot, host="lavalink.lexnet.cc", port=443, password="lexn3tl@val!nk", https=True)
+    
     # --- Events ---
     # When a new music starts...
     @commands.Cog.listener()
-    async def on_wavelink_track_start(self, player: wavelink.Player, track: wavelink.Track):
+    async def on_nextwave_track_start(self, player: nextwave.Player, track: nextwave.Track):
 
         # Pass the current player context and voice client
         ctx = player.ctx
@@ -32,7 +32,7 @@ class Youtube(commands.Cog):
 
     # When the music ends...
     @commands.Cog.listener()
-    async def on_wavelink_track_end(self, player: wavelink.Player, track: wavelink.Track, reason):
+    async def on_nextwave_track_end(self, player: nextwave.Player, track: nextwave.Track, reason):
 
         # Pass the current player context and voice client
         ctx = player.ctx
@@ -83,21 +83,25 @@ class Youtube(commands.Cog):
                     voice_client.cleanup()
                     await voice_client.disconnect()
 
-                    # Reconnect with the wavelink client
-                    vc: wavelink.Player = await userVoiceChannel.connect(cls=wavelink.Player)
+                    # Reconnect with the nextwave client
+                    vc: nextwave.Player = await userVoiceChannel.connect(cls=nextwave.Player)
 
                     # Exit for loop
                     break
 
                 # Sets the voice client to the current bot channel
-                vc: wavelink.Player = voice_client
+                vc: nextwave.Player = voice_client
 
         # Bot is not in a voice channel...
         else:
-            vc: wavelink.Player = await userVoiceChannel.connect(cls=wavelink.Player)
+            vc: nextwave.Player = await userVoiceChannel.connect(cls=nextwave.Player)
 
         # Get the first search result for the song requested
-        search = await wavelink.YouTubeTrack.search(query=musica, return_first=True)
+        print(musica)
+        if "list=" in musica:
+            search = await nextwave.YouTubePlaylist.search(query=musica)
+        else:
+            search = await nextwave.YouTubeTrack.search(query=musica, return_first=True)
 
         # Initiate the client context
         vc.ctx = interaction
@@ -106,14 +110,28 @@ class Youtube(commands.Cog):
         if vc.is_playing():
 
             # Put the requested song in queue
-            await vc.queue.put_wait(search)
-            return await interaction.send(f"{interaction.user.mention} adicionou `{search.title}` a lista")
+            if isinstance(search, nextwave.YouTubePlaylist):
+                for track in search.tracks:
+                    await vc.queue.put_wait(track)
+                return await interaction.send(f"{interaction.user.mention} adicionou `{len(search.tracks)}` musicas da playlist `{search.name}`")
+            else:
+                await vc.queue.put_wait(search)
+                return await interaction.send(f"{interaction.user.mention} adicionou `{search.title}`")
 
         # Create a song card with controls for the current song
-        await songCard(search, interaction)
+        if isinstance(search, nextwave.YouTubePlaylist):
+            await songCard(search.tracks[0], interaction)
+        else:
+            await songCard(search, interaction)
 
         # Play the requested song
-        await vc.play(search)
+        if isinstance(search, nextwave.YouTubePlaylist):
+            for track in search.tracks:
+                await vc.queue.put_wait(track)
+            await interaction.send(f"{interaction.user.mention} adicionou `{len(search.tracks)}` musicas da playlist `{search.name}`")
+            await vc.play(vc.current)
+        else:
+            await vc.play(search)
 
     # Command to remove the bot from the current voice channel
     # WORKS FOR THE RADIO COMMAND TOO
