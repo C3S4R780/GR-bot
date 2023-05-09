@@ -58,32 +58,32 @@ class Reactions(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, msg):
 
-        if not msg.author.bot:
+        if msg.author.bot or msg.channel.type == nextcord.ChannelType.public_thread: return
 
-            if "<@995790616745234482>" in msg.content:
+        if "<@995790616745234482>" in msg.content:
+            channel = self.bot.get_channel(msg.channel.id)
+            await channel.send("Falou comigo?")
+
+        for reaction in reactions:
+            if reaction.lower() in msg.content.lower():
                 channel = self.bot.get_channel(msg.channel.id)
-                await channel.send("Falou comigo?")
+                await channel.send(reactions[reaction])
 
-            for reaction in reactions:
-                if reaction.lower() in msg.content.lower():
-                    channel = self.bot.get_channel(msg.channel.id)
-                    await channel.send(reactions[reaction])
+        if (random.randint(1,20) == 1):
+            emojiList = ["😭", "👀", "🏳️‍🌈", "<:oxi:844587774137073674>", "<:kkkkkk:844588632655790081>", "<:fodase:933420784158904393>", "<:hmm:844586895946416158>"]
+            await msg.add_reaction(emojiList[random.randint(0, 6)])
 
-            if (random.randint(1,20) == 1):
-                emojiList = ["😭", "👀", "🏳️‍🌈", "<:oxi:844587774137073674>", "<:kkkkkk:844588632655790081>", "<:fodase:933420784158904393>", "<:hmm:844586895946416158>"]
-                await msg.add_reaction(emojiList[random.randint(0, 6)])
+        if (random.randint(1,1000) == 1):
+            dm = await msg.author.create_dm()
+            await dm.send("Mano, tu é ?? 🏳️‍🌈")
 
-            if (random.randint(1,1000) == 1):
-                dm = await msg.author.create_dm()
-                await dm.send("Mano, tu é ?? 🏳️‍🌈")
-
-            # F API de piada
-            # if (random.randint(1,40) == 1):
-            #     joke = requests.get("https://api-charadas.herokuapp.com/puzzle?lang=ptbr")
-            #     if (joke.status_code == 200):
-            #         joke = joke.json()
-            #         channel = self.bot.get_channel(msg.channel.id)
-            #         await channel.send(f"{msg.author.mention}, {joke.get('question')}\n **{joke.get('answer')}**")
+        # F API de piada
+        # if (random.randint(1,40) == 1):
+        #     joke = requests.get("https://api-charadas.herokuapp.com/puzzle?lang=ptbr")
+        #     if (joke.status_code == 200):
+        #         joke = joke.json()
+        #         channel = self.bot.get_channel(msg.channel.id)
+        #         await channel.send(f"{msg.author.mention}, {joke.get('question')}\n **{joke.get('answer')}**")
 
     @nextcord.slash_command(name="adicionar_reacao", description="Sempre que eu ver a palavra chave, irei reagir com o conteudo informado.")
     async def adicionar_reacao(self, interaction: Interaction, palavra: str = SlashOption(description="Qual palavra devo procurar ?"), conteudo: str = SlashOption(description="O que devo dizer ao reagir ?")):
