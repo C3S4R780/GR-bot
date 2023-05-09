@@ -1,8 +1,7 @@
 # Imports
-import discord
 import nextcord
 from nextcord import Interaction, Color
-import wavelink
+import nextwave as wavelink
 import datetime
 
 def get_current_client(interaction):
@@ -24,13 +23,13 @@ class YoutubeControls(nextcord.ui.View):
         vc: wavelink.Player = get_current_client(interaction)
 
         if self.paused:
-            button.style = discord.ButtonStyle.gray
+            button.style = nextcord.ButtonStyle.gray
             await interaction.edit(view=self)
             self.paused = False
             return await vc.resume()
 
         else:
-            button.style = discord.ButtonStyle.red
+            button.style = nextcord.ButtonStyle.red
             await interaction.edit(view=self)
             self.paused = True
             return await vc.pause()
@@ -39,8 +38,11 @@ class YoutubeControls(nextcord.ui.View):
     async def pular(self, button: nextcord.ui.Button, interaction: Interaction):
         vc: wavelink.Player = get_current_client(interaction)
 
+        if (not hasattr(vc, 'loop')):
+            setattr(vc, "loop", False)
+
         if (vc.loop):
-            return await vc.play(vc.track)
+            return await vc.play(vc.source)
 
         if not (vc.queue.is_empty):
             next_song = vc.queue.get()
@@ -53,14 +55,17 @@ class YoutubeControls(nextcord.ui.View):
     async def loop(self, button: nextcord.ui.Button, interaction: Interaction):
         vc: wavelink.Player = get_current_client(interaction)
 
+        if (not hasattr(vc, 'loop')):
+            setattr(vc, "loop", False)
+
         if vc.loop == False:
             vc.loop = True
-            button.style = discord.ButtonStyle.green
+            button.style = nextcord.ButtonStyle.green
             await interaction.edit(view=self)
 
         else:
             vc.loop = False
-            button.style = discord.ButtonStyle.gray
+            button.style = nextcord.ButtonStyle.gray
             await interaction.edit(view=self)
 
     @nextcord.ui.button(emoji="📃")
@@ -86,7 +91,7 @@ class YoutubeControls(nextcord.ui.View):
         vc: wavelink.Player = get_current_client(interaction)
 
         dm = await interaction.user.create_dm()
-        await dm.send(f"Ta na mão chefe:\n{vc.track.uri}")
+        await dm.send(f"Ta na mão chefe:\n{vc.source.uri}")
 
 class QuitPrompt(nextcord.ui.View):
     def __init__(self):
@@ -106,5 +111,5 @@ class QuitPrompt(nextcord.ui.View):
 async def songCard(song: wavelink.YouTubeTrack, interaction: Interaction):
     view = YoutubeControls()
     embed = nextcord.Embed(title=f"💿 `{song.title}`", url=song.uri, description=f"🎶 Adicionada por: {interaction.user.mention} | 🕒 Duração: `{str(datetime.timedelta(seconds=song.length))}`", colour=Color.from_rgb(255,0,0))
-    embed.set_image(f"https://img.youtube.com/vi/{song.info.get('identifier')}/maxresdefault.jpg")
+    embed.set_image(song.thumbnail)
     return await interaction.send(embed=embed, view=view)
