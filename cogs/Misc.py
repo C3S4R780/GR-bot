@@ -214,5 +214,57 @@ class Misc(commands.Cog):
 
         for file in os.scandir('./imgs'):
             os.remove(file.path)
+
+
+    @nextcord.message_command(name="Filosofar")
+    async def filosofar(self, interaction: Interaction, msg: Message):
+        if not msg.content:
+            return await interaction.send("Esta mensagem não possue texto.", ephemeral=True)
+
+        img = Image.new(mode="RGB", size=(1280, 720))
+        with Image.open(load_img(
+            msg.author.display_avatar.url,
+            "pfp.png"
+        )) as pfp:
+            pfp = pfp.resize((720, 720), Image.Resampling.LANCZOS)
+            pfp = pfp.convert("L")
+            pfp = ImageEnhance.Brightness(pfp).enhance(0.5)
+
+            mask_im = Image.new("L", pfp.size, 0)
+            draw = ImageDraw.Draw(mask_im)
+            draw.rectangle((0, 0, pfp.width-100, pfp.height), fill=255)
+            mask_im.save('./imgs/mask_circle.jpg')
+
+            mask_im_blur = mask_im.filter(ImageFilter.GaussianBlur(15))
+            mask_im_blur.save('./imgs/mask_circle_blur.jpg')
+            img.paste(pfp, (-200, 0), mask_im_blur)
+
+        W,H = img.size
+        d_img = ImageDraw.Draw(img)
+        font = ImageFont.truetype('./UI/fonts/Garamond-MediumItalic.ttf', 72)
+
+        i = 0
+        text = '“ '
+        for line in msg.content.split(" "):
+            if not i==0 and i%4==0: text += "\n"
+            text += line+" "
+            i += 1
+        text += '„'
+
+        _, _, w, h = d_img.textbbox((0, 0), text, font=font)
+        d_img.text((((W-w)/2)+200, (H-h)/2), text, font=font)
+            
+        
+        text = f'~ {msg.author.display_name}'
+        font = ImageFont.truetype('./UI/fonts/Garamond-MediumItalic.ttf', 38)
+        d_img.text((470, H-80), text, font=font)
+
+        img.save("./imgs/quote.png")
+
+        await interaction.send(file=nextcord.File("./imgs/quote.png"))
+
+        for file in os.scandir('./imgs'):
+            os.remove(file.path)
+
 def setup(client):
     client.add_cog(Misc(client))
