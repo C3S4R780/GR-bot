@@ -23,6 +23,8 @@ class OpenAi(commands.Cog):
 
         if msg.author.bot: return
 
+        if msg.content == "GR": return
+
         if "GR" in msg.content:
             ctx = trim_msg(msg)
 
@@ -39,7 +41,7 @@ class OpenAi(commands.Cog):
                     if message.author.bot: role = "assistant"
 
                     history.insert(0, {"role":role,"content":ctx})
-
+                
                 response = openai.ChatCompletion.create(
                     model="gpt-3.5-turbo",
                     temperature=0.5,
@@ -55,24 +57,26 @@ class OpenAi(commands.Cog):
 
             else:
                 await msg.channel.trigger_typing()
-
+                
                 response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
+                    model="gpt-3.5-turbo",    
                     temperature=0.5,
                     messages=[{
                         "role": "user",
                         "content": ctx
                     }]
                 )
-
+                
                 prompt = await msg.reply(content=response.choices[0].message.content, mention_author=False)
-                await prompt.add_reaction("💬")
+
+                if "vlw" not in msg.content.lower():
+                    await prompt.add_reaction("💬")
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
 
         if user.bot: return
-
+        
         if str(reaction.emoji) == "💬":
             last_user_msg = ""
 
@@ -80,9 +84,9 @@ class OpenAi(commands.Cog):
                 if message.author.id == user.id and "GR" in message.content:
                     last_user_msg = message
                     break
-
+    
             thread = await last_user_msg.create_thread(name=trim_msg(last_user_msg).replace("?", ""))
-
+            
             await thread.send(f"{user.mention}\n{reaction.message.content}")
             await reaction.message.delete()
 
