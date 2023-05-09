@@ -14,6 +14,8 @@
 
 # Imports
 import os
+os.system("python3 -m pip install nextcord[voice] nextwave")
+os.system("clear")
 import nextcord
 from nextcord.ext import commands
 from keep_alive import keep_alive
