@@ -1,22 +1,36 @@
 # Imports
-import nextcord
-from nextcord import Interaction, FFmpegPCMAudio, SlashOption
-from nextcord.ext import commands
-from UI.playerUI import QuitPrompt
 import json
+from discord import app_commands, Interaction, FFmpegOpusAudio
+from discord.ext import commands
+from UI.playerUI import QuitPrompt
 
-# Get list of radios
-radios = json.load(open("radios.json"))
+radio_list: dict[str, str] = json.load(open("radios.json"))
 
 class Radio(commands.Cog):
-
     def __init__(self, client):
         self.bot = client
 
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        await self.bot.tree.sync()
+
+
     # --- Commands ---
     # Command to call the bot into voice chat and play the radio's audio
-    @nextcord.slash_command(name="radio", description="Me chama para o canal de voz atual para tocar a rádio 😁")
-    async def radio(self, interaction: Interaction, radio:str = SlashOption(name="radio", description="Qual rádio devo tocar ?", choices=radios)):
+    @app_commands.command()
+    @app_commands.choices(radio=[
+        app_commands.Choice(name=radio, value=url)
+        for (radio, url) in radio_list.items()
+    ])
+    async def radio(self, interaction: Interaction, radio: app_commands.Choice[str]):
+        """Me chama para o canal de voz atual para tocar a rádio 😁
+
+        Parameters
+        ----------
+        radio: app_commands.Choice[str]
+            Qual radío devo tocar ?
+        """
 
         # If the user is not in a voice channel...
         if not (interaction.user.voice):
@@ -26,14 +40,9 @@ class Radio(commands.Cog):
         # Getting user's current voice channel
         userVoiceChannel = interaction.user.voice.channel
 
-        # Get the name of the selected radio
-        radioName = ""
-        for key in radios.keys():
-            if (radios[key] == radio):
-                radioName = key
-
         # If the bot is already in a voice channel...
         if (interaction.client.voice_clients):
+
             for client in interaction.client.voice_clients:
 
                 # If the user is not in the same voice channel as the bot...
@@ -63,9 +72,9 @@ class Radio(commands.Cog):
 
                             # Creates the radio client and plays the selected radio
                             client = await userVoiceChannel.connect()
-                            source = FFmpegPCMAudio(radio)
+                            source = FFmpegOpusAudio(radio.value, bitrate=192)
                             client.play(source)
-                            await interaction.send(content=f"{interaction.user.mention} mudou para a radio `{radioName}`")
+                            await interaction.send(content=f"{interaction.user.mention} mudou para a radio `{radio.name}`") 
 
                         # If the user cancels the prompt...
                         else:
@@ -77,18 +86,19 @@ class Radio(commands.Cog):
                 if (client.is_playing()):
 
                     # Change the radio channel
-                    source = FFmpegPCMAudio(radio)
+                    source = FFmpegOpusAudio(radio.value, bitrate=192)
                     client.source = source
-                    await interaction.response.send_message(f"✅ Agora tocando: `{radioName}`")
+                    await interaction.response.send_message(f"✅ Agora tocando: `{radio.name}`")
 
         # Bot is not in a voice channel...
         else:
 
             # Connects the bot into the user's voice channel and plays the radio
-            source = FFmpegPCMAudio(radio)
+            source = FFmpegOpusAudio(radio.value, bitrate=192)
             voice = await userVoiceChannel.connect()
             voice.play(source)
-            await interaction.response.send_message(f"✅ Tocando `{radioName}` no `{userVoiceChannel.name}`")
+            await interaction.response.send_message(f"✅ Tocando `{radio.name}` no <#{userVoiceChannel.id}>")
 
-def setup(client):
-    client.add_cog(Radio(client))
+
+async def setup(client):
+    await client.add_cog(Radio(client))

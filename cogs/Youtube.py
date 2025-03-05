@@ -1,26 +1,28 @@
 # Imports
-import nextcord
-from nextcord import Interaction, SlashOption
-from nextcord.ext import commands
-import nextwave
+from discord import Client, app_commands, Interaction
+from discord.ext import commands
+import wavelink
 from UI.playerUI import QuitPrompt, songCard
 
 
 class Youtube(commands.Cog):
-
-    def __init__(self, client):
+    def __init__(self, client: Client):
         self.bot = client
-        client.loop.create_task(self.node_connect())
 
-    # Creates a lavalink node
-    async def node_connect(self):
-        await self.bot.wait_until_ready()
-        await nextwave.NodePool.create_node(bot=self.bot, host="lavalink.lexnet.cc", port=443, password="lexn3tl@val!nk", https=True)
-    
+
     # --- Events ---
+    @commands.Cog.listener()
+    async def on_ready(self):
+        await self.bot.tree.sync()
+
+
+    @commands.Cog.listener()
+    async def on_wavelink_node_ready(self, payload):
+        print("Lavalink node connected")
+
     # When a new music starts...
     @commands.Cog.listener()
-    async def on_nextwave_track_start(self, player: nextwave.Player, track: nextwave.Track):
+    async def on_wavelink_track_start(self, player: wavelink.Player, track: wavelink.TrackSource):
 
         # Pass the current player context and voice client
         ctx = player.ctx
@@ -30,13 +32,21 @@ class Youtube(commands.Cog):
         if not hasattr(vc, 'loop'):
             setattr(vc, "loop", False)
 
+        # Change bot status to show song title
+        # await self.bot.change_presence(activity=discord.Activity(
+        #     type=discord.ActivityType.listening,
+        #     name=track.title
+        # ))
+
     # When the music ends...
     @commands.Cog.listener()
-    async def on_nextwave_track_end(self, player: nextwave.Player, track: nextwave.Track, reason):
+    async def on_wavelink_track_end(self, player: wavelink.Player, track: wavelink.TrackSource, reason):
 
         # Pass the current player context and voice client
         ctx = player.ctx
         vc: player = ctx.guild.voice_client
+
+        print("song ended")
 
         # If loop is active...
         if vc.loop:
@@ -56,14 +66,31 @@ class Youtube(commands.Cog):
             # Play the next song in queue
             await vc.play(next_song)
 
+        # else:
+            # Change bot status back to normal
+            # await self.bot.change_presence(activity=discord.Activity(
+            #     type=discord.ActivityType.watching,
+            #     name="Hentai"
+            # ))
+
+
     # --- Commands ---
     # Calls the bot into voice chat and play the specified youtube video
-    @nextcord.slash_command(name="yt", description="Me chama para tocar algo do youtube no canal de voz atual 😁")
-    async def yt(self, interaction: Interaction, musica:str = SlashOption(description="Nome ou URL do video")):
+    @app_commands.command()
+    async def yt(self, interaction: Interaction, musica: str):
+        """Me chama para tocar algo do youtube no canal de voz atual 😁
+
+        Parameters
+        ----------
+        musica: str
+            Nome ou URL do video
+        """
 
         # If the user is not in a voice channel...
         if not (interaction.user.voice):
             return await interaction.send(content="⚠️ Você precisar estar em um canal de voz para usar este comando.", ephemeral=True)
+
+        await interaction.response.defer()
 
         # Get the user's voice channel
         userVoiceChannel = interaction.user.voice.channel
@@ -74,7 +101,8 @@ class Youtube(commands.Cog):
 
                 # If the user is not in the same voice channel...
                 if (voice_client.channel != userVoiceChannel):
-                    return await interaction.response.send_message(content="⚠️ Você não está no mesmo canal para me remover.", ephemeral=True)
+                    return await interaction.resp
+                    onse.send_message(content="⚠️ Você não está no mesmo canal para me remover.", ephemeral=True)
 
                 # If the bot doesnt have the queue attribute... (is playing radio)
                 if not hasattr(voice_client, 'queue'):
@@ -83,34 +111,43 @@ class Youtube(commands.Cog):
                     voice_client.cleanup()
                     await voice_client.disconnect()
 
-                    # Reconnect with the nextwave client
-                    vc: nextwave.Player = await userVoiceChannel.connect(cls=nextwave.Player)
+                    # Reconnect with the wavelink client
+                    vc: wavelink.Player = await userVoiceChannel.connect(cls=wavelink.Player)
 
                     # Exit for loop
                     break
 
                 # Sets the voice client to the current bot channel
-                vc: nextwave.Player = voice_client
+                vc: wavelink.Player = voice_client
 
         # Bot is not in a voice channel...
         else:
-            vc: nextwave.Player = await userVoiceChannel.connect(cls=nextwave.Player)
+            vc: wavelink.Player = await userVoiceChannel.connect(cls=wavelink.Player)
+
+        timestamp = 0
 
         # Get the first search result for the song requested
-        print(musica)
-        if "list=" in musica:
-            search = await nextwave.YouTubePlaylist.search(query=musica)
+        if "?list=" in musica or "&list=" in musica:
+            search = await wavelink.YouTubePlaylist.search(query=musica)
+        elif "?t=" in musica:
+            timestamp = int(musica.split("?t=")[1])
+            search = await wavelink.Playable.search(query=musica.split("?t=")[0], return_first=True)
+        elif "&t=" in musica:
+            timestamp = int(musica.split("&t=")[1])
+            search = await wavelink.Playable.search(query=musica.split("&t=")[0], return_first=True)
         else:
-            search = await nextwave.YouTubeTrack.search(query=musica, return_first=True)
+            search = await wavelink.Playable.search(query=musica, return_first=True)
 
         # Initiate the client context
         vc.ctx = interaction
+        if (not hasattr(vc, 'loop')):
+            setattr(vc, "loop", False)
 
         # If the bot is already playing a song...
         if vc.is_playing():
 
             # Put the requested song in queue
-            if isinstance(search, nextwave.YouTubePlaylist):
+            if isinstance(search, wavelink.YouTubePlaylist):
                 for track in search.tracks:
                     await vc.queue.put_wait(track)
                 return await interaction.send(f"{interaction.user.mention} adicionou `{len(search.tracks)}` musicas da playlist `{search.name}`")
@@ -118,25 +155,30 @@ class Youtube(commands.Cog):
                 await vc.queue.put_wait(search)
                 return await interaction.send(f"{interaction.user.mention} adicionou `{search.title}`")
 
-        # Create a song card with controls for the current song
-        if isinstance(search, nextwave.YouTubePlaylist):
-            await songCard(search.tracks[0], interaction)
-        else:
-            await songCard(search, interaction)
-
         # Play the requested song
-        if isinstance(search, nextwave.YouTubePlaylist):
+        index = int(musica.split("index=")[1])-1 if "index=" in musica else 0
+        if isinstance(search, wavelink.YouTubePlaylist):
             for track in search.tracks:
                 await vc.queue.put_wait(track)
             await interaction.send(f"{interaction.user.mention} adicionou `{len(search.tracks)}` musicas da playlist `{search.name}`")
-            await vc.play(vc.current)
+            await vc.play(vc.queue[index])
+            del vc.queue[index]
         else:
             await vc.play(search)
 
+        await vc.seek(timestamp*1000)
+
+        # Create a song card with controls for the current song
+        if isinstance(search, wavelink.YouTubePlaylist):
+            await songCard(search.tracks[index], interaction)
+        else:
+            await songCard(search, interaction)
+
     # Command to remove the bot from the current voice channel
     # WORKS FOR THE RADIO COMMAND TOO
-    @nextcord.slash_command(name="sair", description="Me remove do canal de voz 😔")
+    @app_commands.command()
     async def sair(self, interaction: Interaction):
+        """Me remove do canal de voz 😔"""
 
         # If the bot is already in a voice channel...
         if (interaction.client.voice_clients):
@@ -177,5 +219,5 @@ class Youtube(commands.Cog):
         else:
             await interaction.send(content="⚠️ Ainda não estou em nenhum canal de voz.", ephemeral=True)
 
-def setup(client):
-    client.add_cog(Youtube(client))
+async def setup(client):
+    await client.add_cog(Youtube(client))

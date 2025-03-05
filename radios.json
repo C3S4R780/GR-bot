@@ -1,11 +1,18 @@
 {
     "Ouro verde": "https://servidor18.brlogic.com:7484/live",
-    "Jovem Pam": "https://24083.live.streamtheworld.com/JP_SP_FMAAC.aac",
+	"Transamerica": "https://21933.live.streamtheworld.com/RT_CWBAAC.aac",
+	"Jovem Pam": "https://stream-163.zeno.fm/c45wbq2us3buv",
+    "Classic Pam": "https://stream-167.zeno.fm/rtk4pzcome3vv",
+    "98 FM": "https://26683.live.streamtheworld.com/98FM_CWBAAC_SC",
+    "Mundo Livre": "https://24403.live.streamtheworld.com/MUNDOLIVRE_CWBAAC_64_SC",
     "91 Rock": "http://servidor40.brlogic.com:8044/live?type=.m3u",
+    "Radio Rock": "https://26643.live.streamtheworld.com/RADIO_89FM_SC",
     "Karen Koltrane": "http://radio.karenkoltraneradio.com:8000/128kbps",
     "Studio MP3": "https://stream.zeno.fm/cg5efmy362quv.mp3",
-    "Mix Balada": "https://stm2.srvvox.com.br:7298/",
-    "98 FM": "https://26663.live.streamtheworld.com/98FM_CWBAAC.aac",
-    "Transamerica": "https://21933.live.streamtheworld.com/RT_CWBAAC.aac?dist=onlineradiobox",
-    "Mundo Livre": "https://107-182-231-169.webnow.com.br/mundolivre.mp3"
+    "Saudade FM": "https://27393.live.streamtheworld.com/SAUDADE_FMAAC.aac",
+    "Balada Mix": "https://stream-163.zeno.fm/5sznxd3pfa0uv",
+    "Dance 2000": "https://streaming.fox.srv.br:8146/stream",
+    "Euro Dance 90's": "https://stream-155.zeno.fm/3vdy30e2ybruv",
+    "Paredao Piseiro": "https://stream-157.zeno.fm/fpz7nxbgrd0uv",
+    "Mega Radio Love": "https://stream-156.zeno.fm/ntbkzezhneruv"
 }

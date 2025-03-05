@@ -1,0 +1,165 @@
+import os
+import json
+import openai
+import discord
+from discord import app_commands, Interaction, ChannelType, Message
+from discord.ext import commands
+from asyncio import sleep
+from apiKeys import OPENAI_KEY, DM_ID
+
+ai_client = openai.OpenAI(
+    api_key=OPENAI_KEY,
+)
+behaviourList = json.load(open("behaviour.json"))
+
+def trim_msg(msg):
+    msg = msg.content.replace("GR", "", 1)
+    if msg and msg[0] == ",":
+        msg = msg.replace(",", "", 1)
+
+    return msg.strip()
+
+def openai_response(history = [], userId: str ='0'):
+    behaviour = behaviourList[userId]
+
+    history.insert(0, {
+        "role": "system",
+        "content": behaviour
+    })
+
+    try:
+        print(history)
+        response = ai_client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=history
+        )
+        print(response)
+
+        return {"content": response.choices[0].message.content, "success": True}
+
+    except openai.error.Timeout:
+        return {
+            "content": "Pensei por tanto tempo que acabei esquecendo o que você pergunto 😅, poderia repetir ?",
+            "success": False
+        }
+
+    except (openai.error.ServiceUnavailableError, openai.error.APIError):
+        return {
+            "content": "Parece que meus serviços estão indisponiveis no momento, espera uns segundinhos e tenta denovo!",
+            "success": False
+        }
+
+    except openai.error.RateLimitError:
+        return {
+            "content": "Limite de requisições atingido.",
+            "success": False
+        }
+
+    except:
+        return {
+            "content": f"Agora deu o carai memo, chama o <@{DM_ID}>",
+            "success": False
+        }
+
+
+class OpenAi(commands.Cog):
+    def __init__(self, client):
+        self.bot = client
+
+    @commands.Cog.listener()
+    async def on_message(self, msg: Message):
+        if msg.author.bot or msg.content == "GR": return
+
+        history = []
+
+        if msg.channel.type == ChannelType.private:
+            dm = msg.channel
+
+            async with dm.typing():
+                async for message in dm.history(limit=6):
+                    role = "user" if not message.author.bot else "assistant"
+                    ctx = trim_msg(message)
+
+                    history.insert(0, {"role": role, "content": ctx})
+
+                response = openai_response(history, str(msg.author.id))
+                return await dm.send(response['content'])
+
+        if "GR" in msg.content:
+            await msg.channel.trigger_typing()
+
+            ctx = trim_msg(msg)
+
+            if msg.channel.type == ChannelType.public_thread:
+                thread = msg.channel
+
+                async with msg.channel.typing():
+                    async for message in thread.history(limit=6):
+                        role = "user" if not message.author.bot else "assistant"
+                        ctx = trim_msg(message)
+
+                        history.insert(0, {"role": role, "content": ctx})
+
+                    response = openai_response(history)
+                    await thread.send(response['content'])
+
+            else:
+
+                response = openai_response([{"role": "user", "content": ctx}])
+                prompt = await msg.reply(content=response['content'], mention_author=False)
+
+                if "vlw" not in msg.content.lower() and response['success']:
+                    await prompt.add_reaction("💬")
+
+    @commands.Cog.listener()
+    async def on_reaction_add(self, reaction, user):
+
+        if user.bot: return
+
+        if str(reaction.emoji) == "💬":
+            last_user_msg = ""
+
+            async for message in reaction.message.channel.history():
+                if message.author.id == user.id and "GR" in message.content:
+                    last_user_msg = message
+                    break
+
+            thread = await last_user_msg.create_thread(name=trim_msg(last_user_msg)[:99].replace("?", ""))
+
+            await thread.send(f"{user.mention}\n{reaction.message.content}")
+            await reaction.message.delete()
+
+    @app_commands.command(name="personalidade", description="Descreva como devo responder futuras mensagens")
+    async def personalidade(self, interaction: Interaction, prompt: str):
+        """Descreva como devo responder futuras mensagens 😁"""
+
+        await interaction.response.defer()
+
+        with open("behaviour.json", "w") as behaviourFile:
+            if interaction.channel.type == ChannelType.private:
+                behaviourList[str(interaction.user.id)] = prompt
+            else:
+                behaviourList['0'] = prompt
+
+            json.dump(behaviourList, behaviourFile)
+
+        await interaction.send("Personalidade alterada com sucesso!", ephemeral=True)
+
+
+    # @discord.slash_command(name="gerar_imagem", description="Irei gerar uma imagem apartir de seu texto")
+    # async def gerar_imagem(self, interaction: Interaction, texto: str = SlashOption(description="Descreva como a imagem devera ser criada")):
+
+    #     response = await interaction.send("Carregando imagem...")
+
+    #     async with interaction.channel.typing():
+    #         request = openai.Image.create(
+    #           prompt=texto,
+    #         )
+    #         embed = discord.Embed(description=f"_**{texto}**_ por {interaction.user.mention}")
+    #         embed.set_image(request['data'][0]['url'])
+
+    #     await response.edit(content="", embed=embed)
+
+
+async def setup(client):
+    await client.add_cog(OpenAi(client))
