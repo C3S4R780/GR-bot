@@ -81,9 +81,9 @@ class YoutubeControls(discord.ui.View):
                 i += 1
                 title = f"`{i}. {song.title[:16] + '...' if len(song.title) > 20 else song.title}`"
                 embed.add_field(name="", value=title, inline=False)
-            await interaction.send(embed=embed, ephemeral=True)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
         else:
-            await interaction.send("A fila esta vazia", delete_after=5, ephemeral=True)
+            await interaction.response.send_message("A fila esta vazia", delete_after=5, ephemeral=True)
 
     @discord.ui.button(emoji="❤️")
     async def favorite(self, button: discord.ui.Button, interaction: Interaction):
@@ -118,4 +118,4 @@ async def songCard(song: wavelink.Playable, interaction: Interaction):
     if len(vc.queue) > 0:
         embed.set_footer(text=f"{len(vc.queue)} musicas restantes | Proxima: {vc.queue[0].title[:32]+'...' if len(vc.queue[0].title) > 35 else vc.queue[0].title}")
 
-    return await interaction.send(embed=embed, view=view)
+    return await interaction.response.send_message(embed=embed, view=view)

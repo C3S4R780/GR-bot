@@ -61,11 +61,6 @@ class Misc(commands.Cog):
         self.bot = client
 
 
-    @commands.Cog.listener()
-    async def on_ready(self):
-        await self.bot.tree.sync()
-
-
     @app_commands.command()
     async def diga(self, interaction: Interaction, mensagem: str):
         """Me faça dizer algo 😁

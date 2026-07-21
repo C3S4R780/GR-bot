@@ -48,11 +48,6 @@ class ImageGeneration(commands.Cog):
         self.bot.tree.add_command(self.ctx_menu)
 
 
-    @commands.Cog.listener()
-    async def on_ready(self):
-        await self.bot.tree.sync()
-
-
     @app_commands.command()
     @app_commands.autocomplete(champ_name=champ_search)
     async def roleta_lol(self, interaction: Interaction, champ_name: str = None):
@@ -236,7 +231,7 @@ class ImageGeneration(commands.Cog):
 
         splash.save(f"./imgs/build.png")
 
-        await interaction.send(content=f"# {champ_name}", file=discord.File("./imgs/build.png"))
+        await interaction.response.send_message(content=f"# {champ_name}", file=discord.File("./imgs/build.png"))
 
         for file in os.scandir('./imgs'):
             os.remove(file.path)
@@ -244,7 +239,7 @@ class ImageGeneration(commands.Cog):
 
     async def filosofar(self, interaction: Interaction, msg: Message):
         if not msg.content:
-            return await interaction.send("Esta mensagem não possue texto.", ephemeral=True)
+            return await interaction.response.send_message("Esta mensagem não possue texto.", ephemeral=True)
 
         await interaction.response.defer()
 
@@ -288,7 +283,7 @@ class ImageGeneration(commands.Cog):
 
         img.save("./imgs/quote.png")
 
-        await interaction.send(file=discord.File("./imgs/quote.png"))
+        await interaction.response.send_message(file=discord.File("./imgs/quote.png"))
 
         # for file in os.scandir('./imgs'):
         #     os.remove(file.path)

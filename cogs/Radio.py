@@ -4,16 +4,14 @@ from discord import app_commands, Interaction, FFmpegOpusAudio
 from discord.ext import commands
 from UI.playerUI import QuitPrompt
 
-radio_list: dict[str, str] = json.load(open("radios.json"))
+radio_list: dict[str, str] = json.load(open("radio_list.json"))
+
+def radioUrl(radio: str) -> str:
+    return "https://e-spo-106.fabricahost.com.br/jpcuritiba?f=1783618596N01KX3Z7VJT6K3SNXWA7XEQ5ZPH&tid=01KX3Z7VJTM56YZG40XKKQF4K7" if radio == "jovempanlink" else radio
 
 class Radio(commands.Cog):
     def __init__(self, client):
         self.bot = client
-
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        await self.bot.tree.sync()
 
 
     # --- Commands ---
@@ -28,7 +26,7 @@ class Radio(commands.Cog):
 
         Parameters
         ----------
-        radio: app_commands.Choice[str]
+        radio: commands.Choice[str]
             Qual radío devo tocar ?
         """
 
@@ -57,7 +55,7 @@ class Radio(commands.Cog):
 
                         # Gets the confirmation prompt to leave
                         view = QuitPrompt()
-                        await interaction.send(content="Ainda tem musica na fila, deseja mesmo que eu saia ?", view=view, delete_after=30)
+                        await interaction.response.send_message(content="Ainda tem musica na fila, deseja mesmo que eu saia ?", view=view, delete_after=30)
 
                         # Awating response...
                         await view.wait()
@@ -72,9 +70,9 @@ class Radio(commands.Cog):
 
                             # Creates the radio client and plays the selected radio
                             client = await userVoiceChannel.connect()
-                            source = FFmpegOpusAudio(radio.value, bitrate=192)
+                            source = FFmpegOpusAudio(radioUrl(radio.value), bitrate=192)
                             client.play(source)
-                            await interaction.send(content=f"{interaction.user.mention} mudou para a radio `{radio.name}`") 
+                            await interaction.response.send_message(content=f"{interaction.user.mention} mudou para a radio `{radio.name}`")
 
                         # If the user cancels the prompt...
                         else:
@@ -86,7 +84,7 @@ class Radio(commands.Cog):
                 if (client.is_playing()):
 
                     # Change the radio channel
-                    source = FFmpegOpusAudio(radio.value, bitrate=192)
+                    source = FFmpegOpusAudio(radioUrl(radio.value), bitrate=192)
                     client.source = source
                     await interaction.response.send_message(f"✅ Agora tocando: `{radio.name}`")
 
@@ -94,7 +92,7 @@ class Radio(commands.Cog):
         else:
 
             # Connects the bot into the user's voice channel and plays the radio
-            source = FFmpegOpusAudio(radio.value, bitrate=192)
+            source = FFmpegOpusAudio(radioUrl(radio.value), bitrate=192)
             voice = await userVoiceChannel.connect()
             voice.play(source)
             await interaction.response.send_message(f"✅ Tocando `{radio.name}` no <#{userVoiceChannel.id}>")

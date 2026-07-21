@@ -12,11 +12,6 @@ class Youtube(commands.Cog):
 
     # --- Events ---
     @commands.Cog.listener()
-    async def on_ready(self):
-        await self.bot.tree.sync()
-
-
-    @commands.Cog.listener()
     async def on_wavelink_node_ready(self, payload):
         print("Lavalink node connected")
 
@@ -88,7 +83,7 @@ class Youtube(commands.Cog):
 
         # If the user is not in a voice channel...
         if not (interaction.user.voice):
-            return await interaction.send(content="⚠️ Você precisar estar em um canal de voz para usar este comando.", ephemeral=True)
+            return await interaction.response.send_message(content="⚠️ Você precisar estar em um canal de voz para usar este comando.", ephemeral=True)
 
         await interaction.response.defer()
 
@@ -150,17 +145,17 @@ class Youtube(commands.Cog):
             if isinstance(search, wavelink.YouTubePlaylist):
                 for track in search.tracks:
                     await vc.queue.put_wait(track)
-                return await interaction.send(f"{interaction.user.mention} adicionou `{len(search.tracks)}` musicas da playlist `{search.name}`")
+                return await interaction.response.send_message(f"{interaction.user.mention} adicionou `{len(search.tracks)}` musicas da playlist `{search.name}`")
             else:
                 await vc.queue.put_wait(search)
-                return await interaction.send(f"{interaction.user.mention} adicionou `{search.title}`")
+                return await interaction.response.send_message(f"{interaction.user.mention} adicionou `{search.title}`")
 
         # Play the requested song
         index = int(musica.split("index=")[1])-1 if "index=" in musica else 0
         if isinstance(search, wavelink.YouTubePlaylist):
             for track in search.tracks:
                 await vc.queue.put_wait(track)
-            await interaction.send(f"{interaction.user.mention} adicionou `{len(search.tracks)}` musicas da playlist `{search.name}`")
+            await interaction.response.send_message(f"{interaction.user.mention} adicionou `{len(search.tracks)}` musicas da playlist `{search.name}`")
             await vc.play(vc.queue[index])
             del vc.queue[index]
         else:
@@ -193,7 +188,7 @@ class Youtube(commands.Cog):
 
                     # Sends a prompt to confirm removing the bot while the queue is not finished
                     view = QuitPrompt()
-                    await interaction.send(content="Ainda tem musica na fila, deseja mesmo que eu saia ?", view=view, delete_after=30)
+                    await interaction.response.send_message(content="Ainda tem musica na fila, deseja mesmo que eu saia ?", view=view, delete_after=30)
 
                     # Await user response...
                     await view.wait()
@@ -201,23 +196,23 @@ class Youtube(commands.Cog):
 
                     # If the user confirms the prompt...
                     elif (view.value == "quit"):
-                        await interaction.send(content=f"{interaction.user.mention} me mando sair 😔")
+                        await interaction.response.send_message(content=f"{interaction.user.mention} me mando sair 😔")
 
                     # User declined the prompt...
                     else:
-                        return await interaction.delete_original_message()
+                        return await interaction.message.delete()
 
                 # Queue is empty...
                 else:
-                    await interaction.send(content="❤️ Até a proxima.")
+                    await interaction.response.send_message(content="❤️ Até a proxima.")
 
                 # Disconnect the bot
+                await client.disconnect(force=True)
                 client.cleanup()
-                await client.disconnect()
 
         # Bot is not in a voice channel...
         else:
-            await interaction.send(content="⚠️ Ainda não estou em nenhum canal de voz.", ephemeral=True)
+            await interaction.response.send_message(content="⚠️ Ainda não estou em nenhum canal de voz.", ephemeral=True)
 
 async def setup(client):
     await client.add_cog(Youtube(client))

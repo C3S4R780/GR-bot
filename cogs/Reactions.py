@@ -70,11 +70,6 @@ class Reactions(commands.Cog):
 
 
     @commands.Cog.listener()
-    async def on_ready(self):
-        await self.bot.tree.sync()
-
-
-    @commands.Cog.listener()
     async def on_message(self, msg: Message):
 
         if msg.author.bot or msg.channel.type == ChannelType.public_thread: return
@@ -95,9 +90,9 @@ class Reactions(commands.Cog):
             ]
             await msg.add_reaction(random.choice(emojiList))
 
-        if (random.randint(1,1000) == 1):
-            dm = await msg.author.create_dm()
-            await dm.send("Mano, tu é ?? 🏳️‍🌈")
+        # if (random.randint(1,1000) == 1):
+        #     dm = await msg.author.create_dm()
+        #     await dm.send("Mano, tu é ?? 🏳️‍🌈")
 
 
         # Enviar uma mensagem se houver 3 ocorrencias da mesma por 3 usuarios diferentes

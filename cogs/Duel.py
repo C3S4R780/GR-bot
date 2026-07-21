@@ -81,11 +81,6 @@ class Duel(commands.Cog):
         self.bot.tree.add_command(self.ctx_menu)
 
 
-    @commands.Cog.listener()
-    async def on_ready(self):
-        await self.bot.tree.sync()
-
-
     async def duelar(self, interaction: Interaction, user: Member) -> None:
         if user.bot:
             return await interaction.response.send_message(
